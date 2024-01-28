@@ -1,0 +1,1 @@
+clang.exe -o Tetris.exe Tetris.c CheckCollision.c CheckLines.c gfx.c -l raylibdll
