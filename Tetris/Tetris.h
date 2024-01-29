@@ -1,3 +1,6 @@
+#ifndef TETRIS_H
+#define TETRIS_H
+
 #include "raylib.h"
 
 #define STAGE_WIDTH 12
@@ -12,3 +15,6 @@ void drawTetromino(const Color currentColor, const int startOffsetX, const int s
 void drawStage(const int startOffsetX, const int startOffsetY, const Color* colorTypes);
 int IsGameOver(int tetrominoX, int tetrominoY, const int *tetromino);
 void drawScore(int score);
+void drawGameOver();
+
+#endif //TETRIS_H

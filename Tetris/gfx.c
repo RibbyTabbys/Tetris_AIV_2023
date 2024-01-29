@@ -41,3 +41,8 @@ void drawScore(const int score)
 {
     DrawText(TextFormat("Score: %d", score), 320, 50, 50, RED);
 }
+
+void drawGameOver()
+{
+    DrawText("GAME OVER", GetScreenWidth() / 2 - MeasureText("GAME OVER", 80) / 2, GetScreenHeight() / 2 - 20, 80, RED);
+}

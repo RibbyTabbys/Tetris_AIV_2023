@@ -7,6 +7,7 @@
 #include "color_types.h"
 
 int score = 0;
+int gameOver = 0;
 
 int main(int argc, char** argv, char** environ)
 {
@@ -22,8 +23,6 @@ int main(int argc, char** argv, char** environ)
     const float minTimeToMoveTetrominoDown = 0.2f;
 
     const int pointsNeededToFallFaster = 500;
-
-    int gameOver = 0;
 
     int currentTetrominoX = tetrominoStartX;
     int currentTetrominoY = tetrominoStartY;
@@ -55,94 +54,93 @@ int main(int argc, char** argv, char** environ)
 
     while(!WindowShouldClose())
     {
-        PlayMusicStream(music);
-        UpdateMusicStream(music);
-
-        timeToMoveTetrominoDown -= GetFrameTime();
-
-        if (IsGameOver(currentTetrominoX, currentTetrominoY, tetrominoTypes[currentTetrominoType][currentRotation])) 
+        gameOver = IsGameOver(currentTetrominoX, currentTetrominoY, tetrominoTypes[currentTetrominoType][currentRotation]);
+        
+        if (!gameOver)
         {
-            CloseWindow();
-            break;
-        }
+            PlayMusicStream(music);
+            UpdateMusicStream(music);
 
-        if (IsKeyPressed(KEY_SPACE))
-        {
-            const int lastRotation = currentRotation;
+            timeToMoveTetrominoDown -= GetFrameTime();
 
-            currentRotation++;
+            if (IsKeyPressed(KEY_SPACE))
+            {
+                const int lastRotation = currentRotation;
 
-            if (currentRotation > 3)
-            {
-                currentRotation = 0;
-            }
+                currentRotation++;
 
-            if (CheckCollision(currentTetrominoX,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
-            {
-                currentRotation = lastRotation;
-            }
-            else
-            {
-                PlaySound(rotateSound);
-            }
-        }
-
-        if (IsKeyPressed(KEY_RIGHT))
-        {
-            if (!CheckCollision(currentTetrominoX+1,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
-            {
-                currentTetrominoX++;
-                PlaySound(moveSound);
-            }
-        }
-        if (IsKeyPressed(KEY_LEFT))
-        {
-            if (!CheckCollision(currentTetrominoX-1,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
-            {
-                currentTetrominoX--;
-                PlaySound(moveSound);
-            }
-        }
-
-        if(timeToMoveTetrominoDown <= 0 || IsKeyPressed(KEY_DOWN))
-        {            
-            if(!CheckCollision(currentTetrominoX,currentTetrominoY+1,tetrominoTypes[currentTetrominoType][currentRotation]))
-            {
-                currentTetrominoY++;
-                timeToMoveTetrominoDown = moveTetrominoDownTimer;
-                PlaySound(moveSound);
-            }
-            else
-            {
-                for(int y = 0; y < TETROMINO_SIZE; y++)
+                if (currentRotation > 3)
                 {
-                    for(int x = 0; x < TETROMINO_SIZE; x++)
-                    {
-                        const int offset = y * TETROMINO_SIZE + x;
-
-                        const int *tetromino = tetrominoTypes[currentTetrominoType][currentRotation];
-
-                        if(tetromino[offset] == 1)
-                        {
-                            const int offset_stage = (y + currentTetrominoY) * STAGE_WIDTH + (x + currentTetrominoX);
-
-                            stage[offset_stage] = currentColor+1;
-                        }
-                    }
+                    currentRotation = 0;
                 }
 
-                DeleteLines(clearLineSound);
-                PlaySound(tetrominoPlacedSound);
+                if (CheckCollision(currentTetrominoX,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
+                {
+                    currentRotation = lastRotation;
+                }
+                else
+                {
+                    PlaySound(rotateSound);
+                }
+            }
 
-                if(moveTetrominoDownTimer >= minTimeToMoveTetrominoDown && score >= pointsNeededToFallFaster && score % pointsNeededToFallFaster == 0)
-                    moveTetrominoDownTimer -= 0.1f;
+            if (IsKeyPressed(KEY_RIGHT))
+            {
+                if (!CheckCollision(currentTetrominoX+1,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
+                {
+                    currentTetrominoX++;
+                    PlaySound(moveSound);
+                }
+            }
+            if (IsKeyPressed(KEY_LEFT))
+            {
+                if (!CheckCollision(currentTetrominoX-1,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
+                {
+                    currentTetrominoX--;
+                    PlaySound(moveSound);
+                }
+            }
 
-                currentTetrominoX = tetrominoStartX;
-                currentTetrominoY = tetrominoStartY;
+            if(timeToMoveTetrominoDown <= 0 || IsKeyPressed(KEY_DOWN))
+            {            
+                if(!CheckCollision(currentTetrominoX, currentTetrominoY + 1, tetrominoTypes[currentTetrominoType][currentRotation]))
+                {
+                    currentTetrominoY++;
+                    timeToMoveTetrominoDown = moveTetrominoDownTimer;
+                    PlaySound(moveSound);
+                }
+                else
+                {
+                    for(int y = 0; y < TETROMINO_SIZE; y++)
+                    {
+                        for(int x = 0; x < TETROMINO_SIZE; x++)
+                        {
+                            const int offset = y * TETROMINO_SIZE + x;
 
-                currentTetrominoType = GetRandomValue(0, 6);
-                currentRotation = 0;
-                currentColor = GetRandomValue(0, 7);
+                            const int *tetromino = tetrominoTypes[currentTetrominoType][currentRotation];
+
+                            if(tetromino[offset] == 1)
+                            {
+                                const int offset_stage = (y + currentTetrominoY) * STAGE_WIDTH + (x + currentTetrominoX);
+
+                                stage[offset_stage] = currentColor+1;
+                            }
+                        }
+                    }
+
+                    DeleteLines(clearLineSound);
+                    PlaySound(tetrominoPlacedSound);
+
+                    if(moveTetrominoDownTimer >= minTimeToMoveTetrominoDown && score >= pointsNeededToFallFaster && score % pointsNeededToFallFaster == 0)
+                        moveTetrominoDownTimer -= 0.1f;
+
+                    currentTetrominoX = tetrominoStartX;
+                    currentTetrominoY = tetrominoStartY;
+
+                    currentTetrominoType = GetRandomValue(0, 6);
+                    currentRotation = 0;
+                    currentColor = GetRandomValue(0, 7);
+                }
             }
         }
 
@@ -150,11 +148,18 @@ int main(int argc, char** argv, char** environ)
 
         ClearBackground(BLUE);
 
-        drawStage(startOffsetX, startOffsetY, colorTypes);
+        if(!gameOver)
+        {
+            drawStage(startOffsetX, startOffsetY, colorTypes);
 
-        drawScore(score);
+            drawScore(score);
 
-        drawTetromino(colorTypes[currentColor],startOffsetX, startOffsetY, currentTetrominoX, currentTetrominoY, tetrominoTypes[currentTetrominoType][currentRotation]);
+            drawTetromino(colorTypes[currentColor],startOffsetX, startOffsetY, currentTetrominoX, currentTetrominoY, tetrominoTypes[currentTetrominoType][currentRotation]);
+        }
+        else
+        {
+            drawGameOver();
+        }
 
         EndDrawing();
     }
