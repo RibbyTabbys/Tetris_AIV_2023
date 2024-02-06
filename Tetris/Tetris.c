@@ -1,28 +1,65 @@
 #include <time.h>
 #include <string.h>
 #include "Tetris.h"
-#include "tetromini_info.h"
 #include "stage.h"
 #include <stdio.h>
 #include "color_types.h"
+#include "tetromini_info.h"
 
 int score = 0;
 int gameOver = 0;
+const int windowWidth = 700; 
+const int windowHeight = 600; 
+const int tetrominoStartX = STAGE_WIDTH / 2;
+const int tetrominoStartY = 0;
+const float minTimeToMoveTetrominoDown = 0.2f;
+const int pointsNeededToFallFaster = 500;
+
+void SpaceInput(int *currentRotation, int currentTetrominoX, int currentTetrominoY, int currentTetrominoType, const Sound rotateSound)
+{
+    const int lastRotation = *currentRotation;
+
+    (*currentRotation)++;
+
+    if (*currentRotation > 3)
+    {
+        *currentRotation = 0;
+    }
+
+    if (CheckCollision(currentTetrominoX, currentTetrominoY, tetrominoTypes[currentTetrominoType][*currentRotation]))
+    {
+        *currentRotation = lastRotation;
+    }
+    else
+    {
+        PlaySound(rotateSound);
+    }
+}
+
+void DrawTetrominoToStage(int currentRotation, int currentTetrominoX, int currentTetrominoY, int currentTetrominoType, int currentColor)
+{
+    for(int y = 0; y < TETROMINO_SIZE; y++)
+    {
+        for(int x = 0; x < TETROMINO_SIZE; x++)
+        {
+            const int offset = y * TETROMINO_SIZE + x;
+
+            const int *tetromino = tetrominoTypes[currentTetrominoType][currentRotation];
+
+            if(tetromino[offset] == 1)
+            {
+                const int offset_stage = (y + currentTetrominoY) * STAGE_WIDTH + (x + currentTetrominoX);
+
+                stage[offset_stage] = currentColor+1;
+            }
+        }
+    }
+}
 
 int main(int argc, char** argv, char** environ)
 {
-    const int windowWidth = 700; 
-    const int windowHeight = 600; 
-
-    const int startOffsetX = (windowWidth / 4.2) - ((STAGE_WIDTH * TILE_SIZE) / 2);
+    const int startOffsetX = (windowWidth / 4.2f) - ((STAGE_WIDTH * TILE_SIZE) / 2);
     const int startOffsetY = (windowHeight / 2) - ((STAGE_HEIGHT * TILE_SIZE) / 2);
-
-    const int tetrominoStartX = STAGE_WIDTH / 2;
-    const int tetrominoStartY = 0;
-
-    const float minTimeToMoveTetrominoDown = 0.2f;
-
-    const int pointsNeededToFallFaster = 500;
 
     int currentTetrominoX = tetrominoStartX;
     int currentTetrominoY = tetrominoStartY;
@@ -65,23 +102,7 @@ int main(int argc, char** argv, char** environ)
 
             if (IsKeyPressed(KEY_SPACE))
             {
-                const int lastRotation = currentRotation;
-
-                currentRotation++;
-
-                if (currentRotation > 3)
-                {
-                    currentRotation = 0;
-                }
-
-                if (CheckCollision(currentTetrominoX,currentTetrominoY,tetrominoTypes[currentTetrominoType][currentRotation]))
-                {
-                    currentRotation = lastRotation;
-                }
-                else
-                {
-                    PlaySound(rotateSound);
-                }
+                SpaceInput(&currentRotation, currentTetrominoX, currentTetrominoY, currentTetrominoType, rotateSound);
             }
 
             if (IsKeyPressed(KEY_RIGHT))
@@ -111,24 +132,10 @@ int main(int argc, char** argv, char** environ)
                 }
                 else
                 {
-                    for(int y = 0; y < TETROMINO_SIZE; y++)
-                    {
-                        for(int x = 0; x < TETROMINO_SIZE; x++)
-                        {
-                            const int offset = y * TETROMINO_SIZE + x;
-
-                            const int *tetromino = tetrominoTypes[currentTetrominoType][currentRotation];
-
-                            if(tetromino[offset] == 1)
-                            {
-                                const int offset_stage = (y + currentTetrominoY) * STAGE_WIDTH + (x + currentTetrominoX);
-
-                                stage[offset_stage] = currentColor+1;
-                            }
-                        }
-                    }
+                    DrawTetrominoToStage(currentRotation, currentTetrominoX, currentTetrominoY, currentTetrominoType, currentColor);
 
                     DeleteLines(clearLineSound);
+                    
                     PlaySound(tetrominoPlacedSound);
 
                     if(moveTetrominoDownTimer >= minTimeToMoveTetrominoDown && score >= pointsNeededToFallFaster && score % pointsNeededToFallFaster == 0)
